@@ -2,8 +2,8 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Review, Detail
-from .ser import DetailSer, ReviewSer
+from .models import Review, Detail, Group
+from .ser import DetailSer, ReviewSer, GroupSer
 
 class CreateListDetail(ListCreateAPIView):
     queryset = Detail.objects.all()
@@ -47,3 +47,33 @@ def delete_review(request, review_id):
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Review.DoesNotExist:
         return Response({'error': 'Комментарий не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# API для работы с группами
+class CreateListGroup(ListCreateAPIView):
+    queryset = Group.objects.all()
+    serializer_class = GroupSer
+
+
+class RetrieveUpdateDestroyGroup(RetrieveUpdateDestroyAPIView):
+    queryset = Group.objects.all()
+    serializer_class = GroupSer
+
+
+@api_view(['GET'])
+def group_details(request, group_id):
+    """Получить все детали в группе"""
+    try:
+        group = Group.objects.get(id=group_id)
+        details = Detail.objects.filter(group=group)
+        serializer = DetailSer(details, many=True)
+        return Response(serializer.data)
+    except Group.DoesNotExist:
+        return Response({'error': 'Группа не найдена'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+def detail_status_choices(request):
+    """Получить доступные статусы деталей"""
+    choices = Detail.STATUS_CHOICES
+    return Response(choices)

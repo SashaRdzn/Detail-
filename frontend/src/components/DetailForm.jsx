@@ -1,16 +1,56 @@
 import { useState, useEffect } from 'react';
+import { groupAPI, statusAPI } from '../services/api';
 
 const DetailForm = ({ detail, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
-    nomer: ''
+    nomer: '',
+    group: null,
+    status: 'new'
   });
+  const [groups, setGroups] = useState([]);
+  const [statusChoices, setStatusChoices] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+  const [loadingStatuses, setLoadingStatuses] = useState(false);
+
+  // Загрузить группы
+  const fetchGroups = async () => {
+    try {
+      setLoadingGroups(true);
+      const response = await groupAPI.getAll();
+      setGroups(response.data);
+    } catch (err) {
+      console.error('Error fetching groups:', err);
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
+  // Загрузить статусы
+  const fetchStatuses = async () => {
+    try {
+      setLoadingStatuses(true);
+      const response = await statusAPI.getChoices();
+      setStatusChoices(response.data);
+    } catch (err) {
+      console.error('Error fetching statuses:', err);
+    } finally {
+      setLoadingStatuses(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGroups();
+    fetchStatuses();
+  }, []);
 
   useEffect(() => {
     if (detail) {
       setFormData({
         name: detail.name || '',
-        nomer: detail.nomer || ''
+        nomer: detail.nomer || '',
+        group: detail.group || null,
+        status: detail.status || 'new'
       });
     }
   }, [detail]);
@@ -19,7 +59,7 @@ const DetailForm = ({ detail, onSubmit, onCancel }) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value === '' ? null : value
     }));
   };
 
@@ -60,6 +100,47 @@ const DetailForm = ({ detail, onSubmit, onCancel }) => {
             placeholder="Введите номер детали"
             required
           />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="group">Группа:</label>
+          <select
+            id="group"
+            name="group"
+            value={formData.group || ''}
+            onChange={handleChange}
+          >
+            <option value="">Без группы</option>
+            {loadingGroups ? (
+              <option disabled>Загрузка групп...</option>
+            ) : (
+              groups.map(group => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="status">Статус:</label>
+          <select
+            id="status"
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+          >
+            {loadingStatuses ? (
+              <option disabled>Загрузка статусов...</option>
+            ) : (
+              statusChoices.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))
+            )}
+          </select>
         </div>
 
         <div className="form-actions">

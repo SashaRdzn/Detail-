@@ -41,4 +41,31 @@ export const reviewAPI = {
   delete: (reviewId) => api.delete(`/review/${reviewId}`),
 };
 
+// API для работы с группами
+export const groupAPI = {
+  // Получить все группы
+  getAll: () => api.get('/groups'),
+  
+  // Получить группу по ID
+  getById: (id) => api.get(`/group/${id}`),
+  
+  // Создать новую группу
+  create: (data) => api.post('/groups', data),
+  
+  // Обновить группу
+  update: (id, data) => api.put(`/group/${id}`, data),
+  
+  // Удалить группу
+  delete: (id) => api.delete(`/group/${id}`),
+  
+  // Получить все детали в группе
+  getDetails: (groupId) => api.get(`/group/${groupId}/details`),
+};
+
+// API для работы со статусами
+export const statusAPI = {
+  // Получить доступные статусы
+  getChoices: () => api.get('/detail-status-choices'),
+};
+
 export default api;
